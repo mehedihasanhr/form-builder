@@ -1,23 +1,22 @@
+import { useBuilderToolsStore } from "@/shared/store/builder-tools.store";
+import { useBuilderStore } from "@/shared/store/builder.store";
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { FormElementPanel } from "./FormElementPanel";
-import BuilderModules from "./BuilderModules";
-import { useBuilderToolsStore } from "@/shared/store/builder-tools.store";
 import { arrayMove } from "@dnd-kit/sortable";
-import { useBuilderStore } from "@/shared/store/builder.store";
+import BuilderModules from "./BuilderModules";
+import { FormElementPanel } from "./FormElementPanel";
+import FieldConfigSidebar from "./FieldConfigSidebar";
 
 export function Builder() {
+  const { selectedElementId } = useBuilderStore();
   const { tools, setActiveDraggedTool, sortTools } = useBuilderToolsStore();
-  const { setDraggedElement } = useBuilderStore();
-
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
   // handle onDragStart
@@ -45,25 +44,18 @@ export function Builder() {
     }
   };
 
-  // handle DragOver
-  const onDragOver = (event: DragOverEvent) => {
-    console.log({ event });
-    if (event?.over?.id === "canvas" && event?.active?.data?.current) {
-      setDraggedElement(event.active.data.current as Tool);
-    }
-  };
+  console.log({ selectedElementId });
 
   return (
     <DndContext
       sensors={sensors}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
     >
       <div className="grid grid-cols-[21rem_1fr_21rem] gap-9">
         <FormElementPanel />
         <BuilderModules />
-        <div></div>
+        {selectedElementId && <FieldConfigSidebar />}
       </div>
     </DndContext>
   );

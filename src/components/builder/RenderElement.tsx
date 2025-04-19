@@ -1,11 +1,149 @@
-import React from "react";
 import { match } from "ts-pattern";
+import Field from "../ui/Field";
+import Input from "../ui/Input";
+import Label from "../ui/Label";
+import {
+  Select,
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+  ComboboxButton,
+  Checkbox,
+  RadioGroup,
+  Radio,
+} from "@headlessui/react";
+import { IconCheck, IconCircle, IconSelector } from "@tabler/icons-react";
 
-export default function RenderElement({ el }: { el: Tool }) {
-  return match(el)
-    .with({ type: "text" }, ({ config }) => <input type="text" {...config} />)
-    .with({ type: "number" }, ({ config }) => (
-      <input type="number" {...config} />
-    ))
-    .otherwise(() => null);
+export default function RenderElement({
+  el,
+  isSelected = false,
+  onSelect,
+}: {
+  el: BuilderElementField;
+  isSelected?: boolean;
+  onSelect: (el: BuilderElementField) => void;
+}) {
+  const handleOnSelect =
+    (field: BuilderElementField) => (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      onSelect?.(field);
+    };
+
+  return (
+    match(el)
+      .with({ inputType: "text" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+          <Input type={field.inputType} placeholder="Text Field" readOnly />
+        </Field>
+      ))
+
+      // Number input field
+      .with({ inputType: "number" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+          <Input type={field.inputType} placeholder="Number Field" readOnly />
+        </Field>
+      ))
+
+      // select field
+      .with({ inputType: "select" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+          <Select
+            name="status"
+            aria-label="Project status"
+            disabled
+            className="h-9 rounded-[4px] border border-border placeholder:text-sm placeholder:text-[rgba(99,99,102,1)] py-2 px-3"
+          >
+            {typeof field.options !== "string" &&
+              field.options?.map((opt, index) => (
+                <option key={`option-${index}`} value={opt}>
+                  {opt}
+                </option>
+              ))}
+          </Select>
+        </Field>
+      ))
+
+      // combobox
+      .with({ inputType: "combobox" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+          <Combobox disabled>
+            <div className="relative">
+              <ComboboxInput
+                aria-label="Assignee"
+                placeholder="Combobox"
+                className="h-9  w-full rounded-[4px] border border-border placeholder:text-sm placeholder:text-[rgba(99,99,102,1)] py-2 px-3"
+              />
+              <ComboboxButton className="absolute inset-y-0 right-0 px-2.5">
+                <IconSelector className="size-4 fill-white/60 group-data-[hover]:fill-white" />
+              </ComboboxButton>
+            </div>
+            <ComboboxOptions anchor="bottom" className="border empty:invisible">
+              {typeof field.options !== "string" &&
+                field.options?.map((opt, index) => (
+                  <ComboboxOption
+                    key={`option-${index}`}
+                    value={opt}
+                    className="data-[focus]:bg-blue-100"
+                  >
+                    {opt}
+                  </ComboboxOption>
+                ))}
+            </ComboboxOptions>
+          </Combobox>
+        </Field>
+      ))
+
+      // checkbox
+      .with({ inputType: "checkbox" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+
+          <div className="flex flex-col items-stretch gap-1.5">
+            {typeof field.options !== "string" &&
+              field.options.map((opt, index) => (
+                <label
+                  key={`option-${index}`}
+                  className="flex items-center gap-2"
+                >
+                  <Checkbox
+                    checked
+                    className="group size-6 rounded-md bg-white p-1 ring-1 ring-[rgba(119,119,119,1)] ring-inset data-[checked]:text-gray-500"
+                  >
+                    <IconCheck className="hidden size-4 group-data-[checked]:block" />
+                  </Checkbox>
+                  <span> {opt} </span>
+                </label>
+              ))}
+          </div>
+        </Field>
+      ))
+
+      // radio-group
+      .with({ inputType: "radio-group" }, (field) => (
+        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+          {field.labelName && <Label> {field.labelName} </Label>}
+
+          <RadioGroup className="flex items-center gap-4">
+            {typeof field.options !== "string" &&
+              field.options?.map((opt, index) => (
+                <Radio
+                  key={`option-${index}`}
+                  value={opt}
+                  className="flex items-center gap-2"
+                >
+                  <IconCircle className="size-5 text-[rgba(119,119,119,1)] group-data-[checked]:block" />
+                  <span> {opt} </span>
+                </Radio>
+              ))}
+          </RadioGroup>
+        </Field>
+      ))
+
+      .otherwise(() => null)
+  );
 }

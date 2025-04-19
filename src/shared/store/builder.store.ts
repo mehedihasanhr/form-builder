@@ -10,10 +10,18 @@ export const useBuilderStore = create<BuilderStore>()(
     selectedElement: null,
     selectedElementId: null,
 
+    // init elements
+    setElements: (elements) =>
+      set((state) => {
+        console.log("ELMENETS: ", elements);
+        state.elements = elements;
+      }),
+
+    // update Elements
     updateElement: (element) =>
       set((state) => {
         const index = state.elements.findIndex(
-          (el) => el.fieldsetTextId === element.fieldsetTextId
+          (el) => el.fieldsetTextId === element.fieldsetTextId,
         );
 
         if (index !== -1) {
@@ -23,25 +31,43 @@ export const useBuilderStore = create<BuilderStore>()(
         }
       }),
 
+    // delete element
+    deleteElement: (elementId: string) =>
+      set((state) => {
+        state.elements = state.elements.filter(
+          (el) => el.fieldsetTextId !== elementId,
+        );
+      }),
+
+    // update the elements with new fields
     updateElementField: (field) =>
       set((state) => {
-        // update the elements with new fields
         const newElements = state.elements.map((el) => {
           const fields = el.fields.map((f) =>
-            f.labelTextId === field.labelTextId ? field : f
+            f.labelTextId === field.labelTextId ? field : f,
           );
           return { ...el, fields };
         });
 
+        console.log({ newElements });
+
         state.elements = newElements;
       }),
 
-    setElements: (elements) =>
+    // delete element field
+    deleteElementField: (fieldId: string) =>
       set((state) => {
-        console.log("ELMENETS: ", elements);
-        state.elements = elements;
+        const newElements = state.elements.map((el) => {
+          const fields = el.fields.filter((f) => f.labelTextId !== fieldId);
+          return { ...el, fields };
+        });
+
+        console.log({ newElements });
+
+        state.elements = newElements;
       }),
 
+    // handle selectedElement
     setSelectedElement: (element) => {
       set((state) => {
         if (element && "fieldsetTextId" in element) {
@@ -53,5 +79,5 @@ export const useBuilderStore = create<BuilderStore>()(
         }
       });
     },
-  }))
+  })),
 );

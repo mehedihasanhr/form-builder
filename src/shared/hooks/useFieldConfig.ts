@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useBuilderStore } from "../store/builder.store";
 import { applyChange } from "../service/applyChange";
+import { flushSync } from "react-dom";
 
 export const useFieldConfig = () => {
   const {
@@ -9,7 +10,33 @@ export const useFieldConfig = () => {
     updateElement,
     updateElementField,
     setSelectedElement,
+    deleteElement,
+    deleteElementField,
   } = useBuilderStore();
+
+  // hadnle fieldset delete
+  const deleteFieldSetElements = async (fieldsetId: string) => {
+    const newElements = elements.filter(
+      (el) => el.fieldsetTextId !== fieldsetId,
+    );
+
+    deleteElement(fieldsetId);
+    setSelectedElement(null);
+
+    handleUpdate(newElements);
+  };
+
+  // handle Field delete
+  const deleteField = async (fieldId: string) => {
+    const newElements = elements.map((el) => {
+      const fields = el.fields.filter((f) => f.labelTextId !== fieldId);
+      return { ...el, fields };
+    });
+
+    deleteElementField(fieldId);
+    setSelectedElement(null);
+    handleUpdate(newElements);
+  };
 
   // Handle value change for fieldsets
   const handleFieldSetChange = (
@@ -74,9 +101,11 @@ export const useFieldConfig = () => {
     setSelectedElement(updated as SelectedElement);
   };
 
-  // Handle form submission to save changes
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // handle update function
+  const handleUpdate = async (
+    elements: BuilderElement[],
+    successMessage?: string,
+  ) => {
     if (!selectedElement) return;
 
     const data = JSON.stringify(elements);
@@ -84,11 +113,17 @@ export const useFieldConfig = () => {
     try {
       const response = await applyChange(data);
       if (response?.ok) {
-        toast.success("Changes applied successfully.");
+        toast.success(successMessage || "Changes applied successfully.");
       }
     } catch (err) {
       toast.error("Failed to apply changes.");
     }
+  };
+
+  // Handle form submission to save changes
+  const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
+    await handleUpdate(elements);
   };
 
   return {
@@ -97,5 +132,8 @@ export const useFieldConfig = () => {
     handleAddOption,
     handleDeleteOption,
     handleSubmit,
+    handleUpdate,
+    deleteFieldSetElements,
+    deleteField,
   };
 };

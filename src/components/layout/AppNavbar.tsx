@@ -6,7 +6,12 @@ import { IconEye } from "@tabler/icons-react";
 
 export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
   return (
-    <header className={cn("bg-white py-5 px-7 flex items-center", className)}>
+    <header
+      className={cn(
+        "bg-white py-5 px-7 flex sticky top-0 inset-x-0 z-50 border-b border-border items-center",
+        className
+      )}
+    >
       <div className="inline-flex items-stretch gap-x-6 flex-1">
         <div className="size-12 rounded bg-slate-100" />
         <Separator

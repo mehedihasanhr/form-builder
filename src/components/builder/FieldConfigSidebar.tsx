@@ -6,6 +6,7 @@ import { useBuilderStore } from "@/shared/store/builder.store";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { match } from "ts-pattern";
+import { DeleteButton } from "./DeleteButton";
 
 export default function FieldConfigSidebar() {
   const { selectedElement } = useBuilderStore();
@@ -16,7 +17,24 @@ export default function FieldConfigSidebar() {
     handleAddOption,
     handleDeleteOption,
     handleSubmit,
+    deleteFieldSetElements,
+    deleteField,
+    handleUpdate,
   } = useFieldConfig();
+
+  const onDelete = async () => {
+    if (!selectedElement) return;
+
+    if (selectedElement.type === "fieldSet") {
+      deleteFieldSetElements(
+        (selectedElement as BuilderElement).fieldsetTextId,
+      );
+    }
+
+    if (selectedElement.type === "field") {
+      deleteField((selectedElement as BuilderElementField).labelTextId);
+    }
+  };
 
   if (!selectedElement) return null;
 
@@ -119,9 +137,7 @@ export default function FieldConfigSidebar() {
             ))}
 
           <div className="flex gap-2">
-            <Button type="button" className="bg-neutral-300 flex-1 font-medium">
-              Delete
-            </Button>
+            <DeleteButton onConfirm={onDelete} />
             <Button className="bg-primary text-white flex-1">Apply</Button>
           </div>
         </div>

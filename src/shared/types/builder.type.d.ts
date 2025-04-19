@@ -40,7 +40,9 @@ type BuilderStore = {
   selectedElementId: string | number | null;
 
   updateElement: (element: BuilderElement) => void;
+  deleteElement: (elementId: string) => void;
   updateElementField: (field: BuilderElementField) => void;
+  deleteElementField: (fieldId: string) => void;
   setElements: (elements: BuilderElement[]) => void;
   setSelectedElement: (element: SelectedElement) => void;
 };
