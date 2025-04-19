@@ -1,33 +1,57 @@
 import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { FORM_ELEMENTS } from "../constants/form-elements";
-import { v4 as uuidv4 } from "uuid";
 
 enableMapSet();
 
 export const useBuilderStore = create<BuilderStore>()(
   immer((set) => ({
-    elements: new Map(
-      FORM_ELEMENTS.map((tool) => [tool.id, { ...tool, id: uuidv4() }]),
-    ),
+    elements: [],
     selectedElement: null,
     selectedElementId: null,
-    draggedElement: null,
-    draggedElementId: null,
+
+    updateElement: (element) =>
+      set((state) => {
+        const index = state.elements.findIndex(
+          (el) => el.fieldsetTextId === element.fieldsetTextId
+        );
+
+        if (index !== -1) {
+          state.elements[index] = element;
+        } else {
+          state.elements.push(element);
+        }
+      }),
+
+    updateElementField: (field) =>
+      set((state) => {
+        // update the elements with new fields
+        const newElements = state.elements.map((el) => {
+          const fields = el.fields.map((f) =>
+            f.labelTextId === field.labelTextId ? field : f
+          );
+          return { ...el, fields };
+        });
+
+        state.elements = newElements;
+      }),
+
+    setElements: (elements) =>
+      set((state) => {
+        console.log("ELMENETS: ", elements);
+        state.elements = elements;
+      }),
 
     setSelectedElement: (element) => {
       set((state) => {
-        state.selectedElement = element;
-        state.selectedElementId = element?.id || null;
+        if (element && "fieldsetTextId" in element) {
+          state.selectedElement = element;
+          state.selectedElementId = element?.fieldsetTextId || null;
+        } else {
+          state.selectedElement = element;
+          state.selectedElementId = element?.labelTextId || null;
+        }
       });
     },
-
-    setDraggedElement: (element) => {
-      set((state) => {
-        state.draggedElement = element ? { ...element, id: uuidv4() } : null;
-        state.draggedElementId = element?.id || null;
-      });
-    },
-  })),
+  }))
 );

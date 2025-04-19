@@ -1,5 +1,6 @@
 import { Builder } from "@/components/builder/Builder";
 import { AppNavbar } from "@/components/layout/AppNavbar";
+import { Toaster } from "sonner";
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <main className="px-7 py-[26px] flex-1 min-h-[calc(100vh-88px)]">
         <Builder />
       </main>
+      <Toaster />
     </div>
   );
 }

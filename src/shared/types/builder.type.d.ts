@@ -17,13 +17,30 @@ interface BuilderToolsStore {
   setActiveDraggedTool: (tool: Tool | null) => void;
 }
 
-interface BuilderStore {
-  elements: Map<string, Tool>;
-  selectedElement: Tool | null;
-  selectedElementId: string | number | null;
-  draggedElement: Tool | null;
-  draggedElementId: string | number | null;
+type BuilderElementField = Record<string, any> & {
+  labelName: string;
+  labelTextId: string;
+  inputType: string;
+  options: string | string[];
+};
 
-  setSelectedElement: (element: Tool | null) => void;
-  setDraggedElement: (element: Tool | null) => void;
-}
+type BuilderElement = {
+  fieldsetName: string;
+  fieldsetTextId: string;
+  fields: BuilderElementField[];
+};
+
+type SelectedElement =
+  | ((BuilderElementField | BuilderElement) & { type: "field" | "fieldSet" })
+  | null;
+
+type BuilderStore = {
+  elements: BuilderElement[];
+  selectedElement: SelectedElement;
+  selectedElementId: string | number | null;
+
+  updateElement: (element: BuilderElement) => void;
+  updateElementField: (field: BuilderElementField) => void;
+  setElements: (elements: BuilderElement[]) => void;
+  setSelectedElement: (element: SelectedElement) => void;
+};
