@@ -5,7 +5,7 @@ type Tool = {
   type: string;
   icon: any;
   label: string;
-  config: Record<string, any>;
+  options?: string[];
 };
 
 interface BuilderToolsStore {

@@ -19,10 +19,14 @@ export default function RenderElement({
   el,
   isSelected = false,
   onSelect,
+  disabledDrag = false,
+  fieldSetId,
 }: {
   el: BuilderElementField;
   isSelected?: boolean;
-  onSelect: (el: BuilderElementField) => void;
+  onSelect?: (el: BuilderElementField) => void;
+  disabledDrag?: boolean;
+  fieldSetId?: string;
 }) {
   const handleOnSelect =
     (field: BuilderElementField) => (e: React.MouseEvent<HTMLDivElement>) => {
@@ -33,7 +37,15 @@ export default function RenderElement({
   return (
     match(el)
       .with({ inputType: "text" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
           <Input type={field.inputType} placeholder="Text Field" readOnly />
         </Field>
@@ -41,7 +53,15 @@ export default function RenderElement({
 
       // Number input field
       .with({ inputType: "number" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
           <Input type={field.inputType} placeholder="Number Field" readOnly />
         </Field>
@@ -49,7 +69,15 @@ export default function RenderElement({
 
       // select field
       .with({ inputType: "select" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
           <Select
             name="status"
@@ -69,7 +97,15 @@ export default function RenderElement({
 
       // combobox
       .with({ inputType: "combobox" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
           <Combobox disabled>
             <div className="relative">
@@ -100,7 +136,15 @@ export default function RenderElement({
 
       // checkbox
       .with({ inputType: "checkbox" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
 
           <div className="flex flex-col items-stretch gap-1.5">
@@ -125,7 +169,15 @@ export default function RenderElement({
 
       // radio-group
       .with({ inputType: "radio-group" }, (field) => (
-        <Field onClick={handleOnSelect(field)} data-selected={isSelected}>
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
           {field.labelName && <Label> {field.labelName} </Label>}
 
           <RadioGroup className="flex items-center gap-4">

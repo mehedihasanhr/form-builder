@@ -1,27 +1,44 @@
 import { cn } from "@/shared/lib/utils";
+import { useDraggable, UseDraggableArguments } from "@dnd-kit/core";
 import { IconGripVertical } from "@tabler/icons-react";
 import React from "react";
-import { Button } from "./Button";
 
 export default function Field({
   className,
   children,
+  draggableConfig,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & { draggableConfig: UseDraggableArguments }) {
+  const { isDragging, attributes, listeners, setNodeRef, setActivatorNodeRef } =
+    useDraggable(draggableConfig);
+
   return (
     <div
-      className="flex p-4 bg-field-bg rounded-[8px] border border-border items-stretch select-none border-dashed data-[selected=true]:border-[rgba(28,81,184,1)]"
+      ref={setNodeRef}
+      {...(isDragging ? { "data-dragging": true } : {})}
+      className={cn(
+        "group grid grid-cols-[40px_1fr] bg-field-bg rounded-[8px] border border-border items-stretch select-none border-dashed data-[selected=true]:border-[rgba(28,81,184,1)]",
+        "data-[dragging]:opacity-50 data-[dragging]:border-red-500 data-[dragging]:border-dashed data-[dragging]:cursor-grabbing",
+      )}
       {...props}
+      {...attributes}
     >
-      <div className="w-fit flex items-center">
-        <Button className="aspect-square p-0 w-fit">
-          <IconGripVertical size={18} />
-        </Button>
+      <div>
+        <div
+          ref={setActivatorNodeRef}
+          className="flex items-center justify-center h-full rounded-l-[8px]"
+          {...listeners}
+        >
+          <IconGripVertical
+            size={18}
+            className="text-[rgba(217,217,217,1)] pointer-events-none"
+          />
+        </div>
       </div>
       <div
         className={cn(
-          "flex-1 flex flex-col space-y-2 pointer-events-none",
-          className
+          "flex-1 flex flex-col space-y-2 pointer-events-none py-4",
+          className,
         )}
       >
         {children}

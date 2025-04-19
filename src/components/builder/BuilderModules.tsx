@@ -1,9 +1,10 @@
 import { cn } from "@/shared/lib/utils";
 import { useBuilderStore } from "@/shared/store/builder.store";
-import { DndContext, useDroppable } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import FieldSet from "../ui/FieldSet";
+import DroppableArea from "./DropableArea";
 import RenderElement from "./RenderElement";
 
 const URL =
@@ -51,46 +52,60 @@ export default function BuilderModules() {
     };
 
   return (
-    <DndContext>
-      <div className="flex flex-col gap-y-4">
-        <h4> Your Modules </h4>
+    <div className="flex flex-col gap-y-4">
+      <h4> Your Modules </h4>
 
-        {isLoading ? (
-          <div className="w-full h-full bg-white p-4 rounded">Loading...</div>
-        ) : (
-          <div
-            ref={setNodeRef}
-            className={cn(
-              "w-full h-full bg-white p-4 rounded",
-              isOver && "border border-green-500 border-dashed"
-            )}
-          >
-            <SortableContext
-              items={elements.map((el) => ({ ...el, id: el.fieldsetTextId }))}
-            >
-              <div className="flex flex-col items-stretch gap-y-4">
-                {elements.map((element) => (
-                  <FieldSet
-                    key={element.fieldsetTextId}
-                    label={element.fieldsetName}
-                    id={element.fieldsetTextId}
-                    onClick={onFieldSet(element)}
-                    data-selected={selectedElementId === element.fieldsetTextId}
-                  >
-                    {element.fields.map((field) => (
+      {isLoading ? (
+        <div className="w-full h-full bg-white p-4 rounded">Loading...</div>
+      ) : (
+        <div
+          ref={setNodeRef}
+          className={cn(
+            "w-full h-full bg-white p-4 rounded",
+            isOver && "border border-green-500 border-dashed",
+          )}
+        >
+          <div className="flex flex-col items-stretch">
+            {elements.map((element, elIndex) => (
+              <DroppableArea
+                id={element.fieldsetTextId}
+                isLast={elIndex === elements.length - 1}
+                data={{
+                  data: element,
+                  parent: "root",
+                }}
+              >
+                <FieldSet
+                  key={element.fieldsetTextId}
+                  label={element.fieldsetName}
+                  id={element.fieldsetTextId}
+                  onClick={onFieldSet(element)}
+                  data-selected={selectedElementId === element.fieldsetTextId}
+                >
+                  {element.fields.map((field, index) => (
+                    <DroppableArea
+                      key={field.labelTextId}
+                      id={field.labelTextId}
+                      isLast={index === element.fields.length - 1}
+                      data={{
+                        data: field,
+                        parent: element.fieldsetTextId,
+                      }}
+                    >
                       <RenderElement
                         el={field}
                         onSelect={onFieldSelect}
                         isSelected={selectedElementId === field.labelTextId}
+                        fieldSetId={element.fieldsetTextId}
                       />
-                    ))}
-                  </FieldSet>
-                ))}
-              </div>
-            </SortableContext>
+                    </DroppableArea>
+                  ))}
+                </FieldSet>
+              </DroppableArea>
+            ))}
           </div>
-        )}
-      </div>
-    </DndContext>
+        </div>
+      )}
+    </div>
   );
 }
