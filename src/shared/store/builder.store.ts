@@ -1,19 +1,24 @@
-import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
-enableMapSet();
-
 export const useBuilderStore = create<BuilderStore>()(
   immer((set) => ({
+    hasChanged: false,
     elements: [],
     selectedElement: null,
     selectedElementId: null,
 
     // init elements
+    initElements: (elements) =>
+      set((state) => {
+        state.elements = elements;
+      }),
+
+    // set elements
     setElements: (elements) =>
       set((state) => {
         state.elements = elements;
+        state.hasChanged = true;
       }),
 
     // update Elements
@@ -28,6 +33,8 @@ export const useBuilderStore = create<BuilderStore>()(
         } else {
           state.elements.push(element);
         }
+
+        state.hasChanged = true;
       }),
 
     // delete element
@@ -36,6 +43,8 @@ export const useBuilderStore = create<BuilderStore>()(
         state.elements = state.elements.filter(
           (el) => el.fieldsetTextId !== elementId,
         );
+
+        state.hasChanged = true;
       }),
 
     // update the elements with new fields
@@ -49,6 +58,7 @@ export const useBuilderStore = create<BuilderStore>()(
         });
 
         state.elements = newElements;
+        state.hasChanged = true;
       }),
 
     // delete element field
@@ -60,6 +70,7 @@ export const useBuilderStore = create<BuilderStore>()(
         });
 
         state.elements = newElements;
+        state.hasChanged = true;
       }),
 
     // handle selectedElement
@@ -72,7 +83,14 @@ export const useBuilderStore = create<BuilderStore>()(
           state.selectedElement = element;
           state.selectedElementId = element?.labelTextId || null;
         }
+
+        state.hasChanged = true;
       });
     },
+
+    markUnchanged: () =>
+      set((state) => {
+        state.hasChanged = false;
+      }),
   })),
 );

@@ -3,13 +3,15 @@ import React from "react";
 import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
 import { IconEye } from "@tabler/icons-react";
+import { useBuilderStore } from "@/shared/store/builder.store";
 
 export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
+  const { hasChanged } = useBuilderStore();
   return (
     <header
       className={cn(
         "bg-white py-5 px-7 flex sticky top-0 inset-x-0 z-50 border-b border-border items-center",
-        className
+        className,
       )}
     >
       <div className="inline-flex items-stretch gap-x-6 flex-1">
@@ -25,6 +27,9 @@ export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
       </div>
 
       <div className="flex items-center gap-4">
+        {hasChanged && (
+          <Button className="bg-primary/15 text-primary"> Apply Change </Button>
+        )}
         <p className="text-[13px]"> Changes saved 2 mins ago </p>
         <Button aria-label="Preview Button">
           <IconEye />

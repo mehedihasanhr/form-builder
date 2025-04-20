@@ -1,9 +1,10 @@
 import { toast } from "sonner";
-import { useBuilderStore } from "../store/builder.store";
 import { applyChange } from "../service/applyChange";
-import { flushSync } from "react-dom";
+import { useBuilderStore } from "../store/builder.store";
+import { useState } from "react";
 
 export const useFieldConfig = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const {
     elements,
     selectedElement,
@@ -12,6 +13,7 @@ export const useFieldConfig = () => {
     setSelectedElement,
     deleteElement,
     deleteElementField,
+    markUnchanged,
   } = useBuilderStore();
 
   // hadnle fieldset delete
@@ -109,6 +111,7 @@ export const useFieldConfig = () => {
     if (!selectedElement) return;
 
     const data = JSON.stringify(elements);
+    setIsLoading(true);
 
     try {
       const response = await applyChange(data);
@@ -117,6 +120,9 @@ export const useFieldConfig = () => {
       }
     } catch (err) {
       toast.error("Failed to apply changes.");
+    } finally {
+      markUnchanged();
+      setIsLoading(false);
     }
   };
 
@@ -127,6 +133,7 @@ export const useFieldConfig = () => {
   };
 
   return {
+    isLoading,
     handleFieldSetChange,
     handleFieldChange,
     handleAddOption,

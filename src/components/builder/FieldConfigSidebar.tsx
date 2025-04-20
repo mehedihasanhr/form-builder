@@ -12,6 +12,7 @@ export default function FieldConfigSidebar() {
   const { selectedElement } = useBuilderStore();
   const [newOption, setNewOption] = useState("");
   const {
+    isLoading,
     handleFieldSetChange,
     handleFieldChange,
     handleAddOption,
@@ -19,7 +20,6 @@ export default function FieldConfigSidebar() {
     handleSubmit,
     deleteFieldSetElements,
     deleteField,
-    handleUpdate,
   } = useFieldConfig();
 
   const onDelete = async () => {
@@ -108,37 +108,41 @@ export default function FieldConfigSidebar() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="flex flex-col space-y-4 sticky top-28 scroll-mt-20">
+      <div className="flex flex-col space-y-4 ">
         <h4>Field Properties</h4>
 
-        <div className="w-full h-fit bg-white p-4 rounded flex-col flex gap-4">
-          {selectedElement &&
-            ("fieldsetTextId" in selectedElement ? (
-              // Fieldset configuration
-              <div className="flex flex-col gap-2">
-                <Label>Field-set</Label>
-                <Input
-                  placeholder="Enter field-set name"
-                  value={selectedElement.fieldsetName}
-                  onChange={(e) =>
-                    handleFieldSetChange("fieldsetName", e.target.value)
-                  }
-                />
-              </div>
-            ) : (
-              // Field configuration
-              <>
+        <div className="flex-1">
+          <div className="w-full h-fit bg-white p-4 rounded flex-col flex gap-4">
+            {selectedElement &&
+              ("fieldsetTextId" in selectedElement ? (
+                // Fieldset configuration
                 <div className="flex flex-col gap-2">
-                  <Label>Field Name</Label>
-                  <Input placeholder="Field name" />
+                  <Label>Field-set</Label>
+                  <Input
+                    placeholder="Enter field-set name"
+                    value={selectedElement.fieldsetName}
+                    onChange={(e) =>
+                      handleFieldSetChange("fieldsetName", e.target.value)
+                    }
+                  />
                 </div>
-                {renderFieldOptions()}
-              </>
-            ))}
+              ) : (
+                // Field configuration
+                <>
+                  <div className="flex flex-col gap-2">
+                    <Label>Field Name</Label>
+                    <Input placeholder="Field name" />
+                  </div>
+                  {renderFieldOptions()}
+                </>
+              ))}
 
-          <div className="flex gap-2">
-            <DeleteButton onConfirm={onDelete} />
-            <Button className="bg-primary text-white flex-1">Apply</Button>
+            <div className="flex gap-2">
+              <DeleteButton onConfirm={onDelete} />
+              <Button className="bg-primary text-white flex-1">
+                {isLoading ? "Processing..." : "Apply change"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

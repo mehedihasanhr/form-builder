@@ -1,31 +1,40 @@
+import { useFieldConfig } from "@/shared/hooks/useFieldConfig";
 import { useBuilderToolsStore } from "@/shared/store/builder-tools.store";
 import { useBuilderStore } from "@/shared/store/builder.store";
 import {
   handleFieldRearrangement,
+  handleFieldSetRearrangement,
   handleToolSorting,
   handleToolToElement,
   isToolSorting,
 } from "@/shared/utils/drag-methods";
 import {
-  closestCenter,
   DndContext,
   DragEndEvent,
   DragStartEvent,
   MouseSensor,
   pointerWithin,
-  rectIntersection,
   TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { Button } from "../ui/Button";
 import BuilderModules from "./BuilderModules";
 import DragOverlayComp from "./DragOverlayComp";
 import FieldConfigSidebar from "./FieldConfigSidebar";
 import { FormElementPanel } from "./FormElementPanel";
 
 export function Builder() {
-  const { elements, setElements, setSelectedElement, selectedElementId } =
-    useBuilderStore();
+  const {
+    elements,
+    hasChanged,
+    setElements,
+    setSelectedElement,
+    selectedElementId,
+  } = useBuilderStore();
+
+  const { isLoading, handleUpdate } = useFieldConfig();
+
   const { tools, setActiveDraggedTool, sortTools } = useBuilderToolsStore();
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
@@ -63,6 +72,14 @@ export function Builder() {
       );
       setElements(newElements);
       setSelectedElement(selectedELement);
+    } else if (active.data?.current?.type === "fieldSet") {
+      const [newElements, selectedELement] = handleFieldSetRearrangement(
+        active,
+        over,
+        elements,
+      );
+      setElements(newElements);
+      setSelectedElement(selectedELement);
     }
   };
 
@@ -71,12 +88,31 @@ export function Builder() {
       sensors={sensors}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
     >
       <div className="grid grid-cols-[21rem_1fr_21rem] gap-9">
         <FormElementPanel />
         <BuilderModules />
-        {selectedElementId && <FieldConfigSidebar />}
+        <div className="flex flex-col items-stretch max-h-[calc(100vh-150px)] gap-4 sticky top-28 scroll-mt-20">
+          <div className="flex-1 overflow-y-auto">
+            {selectedElementId && <FieldConfigSidebar />}
+          </div>
+
+          {hasChanged && (
+            <div className="flex gap-2">
+              <Button className="bg-neutral-300 flex-1 font-medium">
+                Draft
+              </Button>
+
+              <Button
+                className="bg-primary text-white flex-1 hover:bg-primary/90 font-medium"
+                onClick={() => handleUpdate(elements)}
+              >
+                {isLoading ? "Processing..." : "Apply"}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
       <DragOverlayComp />
     </DndContext>

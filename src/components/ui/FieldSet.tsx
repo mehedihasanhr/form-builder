@@ -1,8 +1,7 @@
 import { cn } from "@/shared/lib/utils";
-import { useSortable } from "@dnd-kit/sortable";
+import { useDraggable } from "@dnd-kit/core";
 import { ReactNode } from "react";
 import DroppableArea from "../builder/DropableArea";
-import { useDndContext } from "@dnd-kit/core";
 
 export default function FieldSet({
   label,
@@ -17,7 +16,7 @@ export default function FieldSet({
   children: ReactNode;
   data?: any;
 }) {
-  const { isDragging, attributes, listeners, setNodeRef } = useSortable({
+  const { isDragging, attributes, listeners, setNodeRef } = useDraggable({
     id: id,
     data: { data, type: "fieldSet", parent: "root" },
   });
@@ -29,7 +28,7 @@ export default function FieldSet({
       {...(isDragging ? { "data-dragging": true } : {})}
       onClick={onClick}
       className={cn(
-        "group relative border p-4 border-border rounded-[8px] select-none data-[selected=true]:border-green-500",
+        "group relative bg-white border py-0 px-4 border-border rounded-[8px] select-none data-[selected=true]:border-green-500",
         "data-[dragging]:border-red-500 data-[dragging]:border-dashed data-[dragging]:bg-[rgba(255,241,241,1)]",
       )}
       {...props}
@@ -54,7 +53,7 @@ export default function FieldSet({
               type: "field",
               parent: id,
             }}
-            className="h-40"
+            className="h-20"
           />
         )}
       </div>

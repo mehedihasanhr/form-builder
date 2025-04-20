@@ -1,34 +1,22 @@
 import { cn } from "@/shared/lib/utils";
+import { fetchData } from "@/shared/service/fetchData";
 import { useBuilderStore } from "@/shared/store/builder.store";
-import { useDroppable } from "@dnd-kit/core";
-import { rectSwappingStrategy, SortableContext } from "@dnd-kit/sortable";
+import { SortableContext } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import FieldSet from "../ui/FieldSet";
 import DroppableArea from "./DropableArea";
 import RenderElement from "./RenderElement";
 
-const URL =
-  "http://team.dev.helpabode.com:54292/api/wempro/react-dev/coding-test/devinfo.mehedi@gmail.com";
-
 export default function BuilderModules() {
   const [isLoading, setIsLoading] = useState(false);
-  const { elements, setElements, setSelectedElement, selectedElementId } =
+  const { elements, initElements, setSelectedElement, selectedElementId } =
     useBuilderStore();
-  const { isOver, setNodeRef } = useDroppable({
-    id: "canvas",
-    data: { parent: "root", data: {} },
-  });
 
   const fetchElementData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(URL);
-      if (res.ok) {
-        const data = await res.json();
-        setElements(data.your_respons);
-      }
-    } catch (error) {
-      console.error(error);
+      const data = await fetchData();
+      initElements(data.your_respons);
     } finally {
       setIsLoading(false);
     }
@@ -60,70 +48,57 @@ export default function BuilderModules() {
       {isLoading ? (
         <div className="w-full h-full bg-white p-4 rounded">Loading...</div>
       ) : (
-        <div
-          ref={setNodeRef}
-          className={cn(
-            "w-full h-full bg-white p-4 rounded",
-            isOver && "border border-green-500 border-dashed",
-          )}
-        >
-          <div className="flex flex-col items-stretch gap-y-4">
-            <SortableContext
-              id="fieldSet"
-              items={elements.map((el) => ({ id: el.fieldsetTextId }))}
-              strategy={rectSwappingStrategy}
-            >
-              {elements.map((element, elIndex) => (
-                <DroppableArea
+        <div className={cn("w-full h-full bg-white p-4 rounded")}>
+          <div className="flex flex-col items-stretch">
+            {elements.map((element, elIndex) => (
+              <DroppableArea
+                key={element.fieldsetTextId}
+                id={element.fieldsetTextId}
+                isLast={elIndex === elements.length - 1}
+                data={{
+                  data: element,
+                  parent: "root",
+                }}
+              >
+                <FieldSet
                   key={element.fieldsetTextId}
+                  label={element.fieldsetName}
                   id={element.fieldsetTextId}
-                  isLast={elIndex === elements.length - 1}
-                  data={{
-                    data: element,
-                    parent: "root",
-                  }}
+                  onClick={onFieldSet(element)}
+                  data-selected={selectedElementId === element.fieldsetTextId}
+                  data={element}
                 >
-                  <FieldSet
-                    key={element.fieldsetTextId}
-                    label={element.fieldsetName}
-                    id={element.fieldsetTextId}
-                    onClick={onFieldSet(element)}
-                    data-selected={selectedElementId === element.fieldsetTextId}
-                    data={element}
-                  >
-                    {element.fields.length ? (
-                      <SortableContext
-                        id="field-sorting"
-                        items={element.fields.map((f) => ({
-                          id: f.labelTextId,
-                        }))}
-                      >
-                        {element.fields.map((field, index) => (
-                          <DroppableArea
-                            key={field.labelTextId}
-                            id={field.labelTextId}
-                            isLast={index === element.fields.length - 1}
-                            data={{
-                              data: field,
-                              parent: element.fieldsetTextId,
-                            }}
-                          >
-                            <RenderElement
-                              el={field}
-                              onSelect={onFieldSelect}
-                              isSelected={
-                                selectedElementId === field.labelTextId
-                              }
-                              fieldSetId={element.fieldsetTextId}
-                            />
-                          </DroppableArea>
-                        ))}
-                      </SortableContext>
-                    ) : null}
-                  </FieldSet>
-                </DroppableArea>
-              ))}
-            </SortableContext>
+                  {element.fields.length ? (
+                    <SortableContext
+                      id="field-sorting"
+                      items={element.fields.map((f) => ({
+                        id: f.labelTextId,
+                      }))}
+                    >
+                      {element.fields.map((field, index) => (
+                        <DroppableArea
+                          key={field.labelTextId}
+                          id={field.labelTextId}
+                          isLast={index === element.fields.length - 1}
+                          data={{
+                            type: "field",
+                            data: field,
+                            parent: element.fieldsetTextId,
+                          }}
+                        >
+                          <RenderElement
+                            el={field}
+                            onSelect={onFieldSelect}
+                            isSelected={selectedElementId === field.labelTextId}
+                            fieldSetId={element.fieldsetTextId}
+                          />
+                        </DroppableArea>
+                      ))}
+                    </SortableContext>
+                  ) : null}
+                </FieldSet>
+              </DroppableArea>
+            ))}
           </div>
         </div>
       )}

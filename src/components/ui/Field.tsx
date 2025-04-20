@@ -17,7 +17,7 @@ export default function Field({
       ref={setNodeRef}
       {...(isDragging ? { "data-dragging": true } : {})}
       className={cn(
-        "group transition-all grid grid-cols-[40px_1fr] bg-field-bg pr-4 rounded-[8px] border border-border items-stretch select-none border-dashed data-[selected=true]:border-[rgba(28,81,184,1)]",
+        "group transition-all grid grid-cols-[40px_1fr] bg-field-bg pr-4 rounded-[8px] border border-border items-stretch select-none data-[selected=true]:border-[rgba(28,81,184,1)]",
         "data-[dragging]:opacity-50 data-[dragging]:border-red-500 data-[dragging]:border-dashed data-[dragging]:cursor-grabbing",
       )}
       {...props}

@@ -1,5 +1,6 @@
 import { Active, Over } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { current } from "immer";
 import { v4 as uuidv4 } from "uuid";
 
 type ReturnType = [BuilderElement[], SelectedElement | null];
@@ -205,27 +206,49 @@ export function handleFieldsetToRootMove(
   position: string,
   elements: BuilderElement[],
 ): ReturnType {
+  // Create new fieldset with the dragged field
   const newFieldset: BuilderElement = {
     fieldsetName: `Fieldset ${elements.length + 1}`,
     fieldsetTextId: uuidv4(),
     fields: [dragElement.data as BuilderElementField],
   };
 
-  // If dropping on an existing fieldset
-  const targetIndex = elements.findIndex(
-    (el) => el.fieldsetTextId === overElement.data.fieldsetTextId,
-  );
+  // Remove field from original fieldset
+  const updatedElements = elements.map((fieldset) => {
+    if (fieldset.fieldsetTextId === dragElement.parent) {
+      // Filter out the moved field
+      const updatedFields = fieldset.fields.filter(
+        (field) => field.labelTextId !== dragElement.data.labelTextId,
+      );
+      return { ...fieldset, fields: updatedFields };
+    }
+    return fieldset;
+  });
 
-  if (targetIndex !== -1) {
-    const insertIndex = position === "top" ? targetIndex : targetIndex + 1;
-    const updatedElements = [
-      ...elements.slice(0, insertIndex),
-      newFieldset,
-      ...elements.slice(insertIndex),
-    ];
-    return [updatedElements, { ...newFieldset, type: "fieldSet" }];
+  // If dropping on an existing fieldset (not root)
+  if (overElement.data?.fieldsetTextId) {
+    const targetIndex = updatedElements.findIndex(
+      (el) => el.fieldsetTextId === overElement.data.fieldsetTextId,
+    );
+
+    if (targetIndex !== -1) {
+      const insertIndex = position === "top" ? targetIndex : targetIndex + 1;
+      return [
+        [
+          ...updatedElements.slice(0, insertIndex),
+          newFieldset,
+          ...updatedElements.slice(insertIndex),
+        ],
+        { ...newFieldset, type: "fieldSet" },
+      ];
+    }
   }
-  return [[...elements, newFieldset], { ...newFieldset, type: "fieldSet" }];
+
+  // Default case: append to end
+  return [
+    [...updatedElements, newFieldset],
+    { ...newFieldset, type: "fieldSet" },
+  ];
 }
 
 /**
@@ -250,7 +273,7 @@ export function handleCrossFieldsetMove(
   if (!toFieldset) {
     const newFieldset: BuilderElement = {
       fieldsetName: `Fieldset ${elements.length + 1}`,
-      fieldsetTextId: uuidv4(), // Make sure to import/define uuidv4
+      fieldsetTextId: uuidv4(),
       fields: [],
     };
     toFieldset = newFieldset;
@@ -300,6 +323,42 @@ export function handleCrossFieldsetMove(
   });
 
   return [updatedElements, { ...movingField, type: "field" }];
+}
+
+export function handleFieldSetRearrangement(
+  active: Active,
+  over: Over,
+  elements: BuilderElement[],
+): ReturnType {
+  const dragElement = active.data.current;
+  const overElement = over.data.current;
+
+  if (!dragElement || !overElement)
+    return [elements, { ...dragElement, type: "fieldSet" } as SelectedElement];
+
+  const currentIndex = elements.findIndex(
+    (el) => el.fieldsetTextId === dragElement.data.fieldsetTextId,
+  );
+  const targetIndex = elements.findIndex(
+    (el) => el.fieldsetTextId === overElement.data.fieldsetTextId,
+  );
+
+  console.log({
+    dragElement,
+    overElement,
+    currentIndex,
+    targetIndex,
+  });
+
+  if (currentIndex === -1 || targetIndex === -1)
+    return [elements, { ...dragElement, type: "fieldSet" } as SelectedElement];
+
+  const sortedEelements = arrayMove(elements, currentIndex, targetIndex);
+
+  return [
+    sortedEelements,
+    { ...dragElement, type: "fieldSet" } as SelectedElement,
+  ];
 }
 
 // Type guards and utility functions

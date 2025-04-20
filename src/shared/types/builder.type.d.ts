@@ -35,6 +35,7 @@ type SelectedElement =
   | null;
 
 type BuilderStore = {
+  hasChanged: boolean;
   elements: BuilderElement[];
   selectedElement: SelectedElement;
   selectedElementId: string | number | null;
@@ -44,5 +45,7 @@ type BuilderStore = {
   updateElementField: (field: BuilderElementField) => void;
   deleteElementField: (fieldId: string) => void;
   setElements: (elements: BuilderElement[]) => void;
+  initElements: (elements: BuilderElement[]) => void;
   setSelectedElement: (element: SelectedElement) => void;
+  markUnchanged: () => void;
 };
