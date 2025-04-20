@@ -1,6 +1,8 @@
 import { cn } from "@/shared/lib/utils";
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { ReactNode } from "react";
+import DroppableArea from "../builder/DropableArea";
+import { useDndContext } from "@dnd-kit/core";
 
 export default function FieldSet({
   label,
@@ -15,18 +17,19 @@ export default function FieldSet({
   children: ReactNode;
   data?: any;
 }) {
-  const { attributes, listeners, setNodeRef } = useDraggable({
+  const { isDragging, attributes, listeners, setNodeRef } = useSortable({
     id: id,
-    data: { data, type: "fieldSet" },
+    data: { data, type: "fieldSet", parent: "root" },
   });
 
   return (
     <fieldset
       ref={setNodeRef}
       id={`fieldset-${id}`}
+      {...(isDragging ? { "data-dragging": true } : {})}
       onClick={onClick}
       className={cn(
-        "group relative border px-4 border-border rounded-[8px] select-none data-[selected=true]:border-green-500",
+        "group relative border p-4 border-border rounded-[8px] select-none data-[selected=true]:border-green-500",
         "data-[dragging]:border-red-500 data-[dragging]:border-dashed data-[dragging]:bg-[rgba(255,241,241,1)]",
       )}
       {...props}
@@ -38,13 +41,22 @@ export default function FieldSet({
       >
         {label}
       </legend>
-      <div
-        className={cn(
-          "flex flex-col items-stretch ",
-          "group-data-[dragging]:sr-only",
+      <div className="flex flex-col items-stretch">
+        {children || (
+          <DroppableArea
+            id={`${id}-emptyFidldset`}
+            data={{
+              data: {
+                id,
+                fieldsetTextId: id,
+                ...data,
+              },
+              type: "field",
+              parent: id,
+            }}
+            className="h-40"
+          />
         )}
-      >
-        {children}
       </div>
     </fieldset>
   );

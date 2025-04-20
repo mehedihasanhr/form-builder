@@ -2,6 +2,8 @@ import { Active, Over } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { v4 as uuidv4 } from "uuid";
 
+type ReturnType = [BuilderElement[], SelectedElement | null];
+
 /**
  * Handles sorting of tools in the tools list
  */
@@ -44,15 +46,15 @@ export function handleToolToElement(
       position,
       elements,
     );
-  } else {
-    return handleFieldsetInsertion(
-      newField,
-      parent,
-      overContainer,
-      position,
-      elements,
-    );
   }
+
+  return handleFieldsetInsertion(
+    newField,
+    parent,
+    overContainer,
+    position,
+    elements,
+  );
 }
 
 /**
@@ -63,7 +65,7 @@ export function handleRootLevelInsertion(
   overContainer: any,
   position: string,
   elements: BuilderElement[],
-) {
+): [BuilderElement[], SelectedElement] {
   const newElement: BuilderElement = {
     fieldsetName: `Field-set ${elements.length}`,
     fieldsetTextId: uuidv4(),
@@ -100,14 +102,14 @@ export function handleFieldsetInsertion(
   overContainer: BuilderElementField,
   position: string,
   elements: BuilderElement[],
-) {
+): [BuilderElement[], SelectedElement | null] {
   const fieldSet = elements.find((el) => el.fieldsetTextId === parentId);
-  if (!fieldSet) return;
+  if (!fieldSet) return [elements, null];
 
   const index = fieldSet.fields.findIndex(
     (f) => f.labelTextId === overContainer.labelTextId,
   );
-  if (index === -1) return;
+  if (index === -1) return [elements, null];
 
   const fields =
     position === "top"
@@ -127,7 +129,7 @@ export function handleFieldsetInsertion(
     el.fieldsetTextId === updatedFieldSet.fieldsetTextId ? updatedFieldSet : el,
   );
 
-  const selectedElement = { ...field, type: "field" };
+  const selectedElement = { ...field, type: "field" } as SelectedElement;
   return [newElements, selectedElement];
 }
 
@@ -138,23 +140,25 @@ export function handleFieldRearrangement(
   active: Active,
   over: Over,
   elements: BuilderElement[],
-) {
+): [BuilderElement[], SelectedElement | null] {
   const dragElement = active.data.current;
   const overElement = over.data.current;
   const position = over.data.current?.position;
 
-  if (!dragElement || !overElement) return;
+  if (!dragElement || !overElement)
+    return [elements, { ...dragElement, type: "field" } as SelectedElement];
 
   if (dragElement.parent === overElement.parent) {
     return handleSameFieldsetMove(dragElement, overElement, elements);
-  } else {
-    return handleCrossFieldsetMove(
+  } else if (overElement.parent === "root") {
+    return handleFieldsetToRootMove(
       dragElement,
       overElement,
       position,
       elements,
     );
   }
+  return handleCrossFieldsetMove(dragElement, overElement, position, elements);
 }
 
 /**
@@ -164,20 +168,22 @@ export function handleSameFieldsetMove(
   dragElement: any,
   overElement: any,
   elements: BuilderElement[],
-) {
+): ReturnType {
   const parentFieldSet = elements.find(
     (el) => el.fieldsetTextId === overElement.parent,
   );
-  if (!parentFieldSet) return;
+  if (!parentFieldSet) return [elements, { ...dragElement, type: "field" }];
 
   const oldIndex = parentFieldSet.fields.findIndex(
     (field) => field.labelTextId === dragElement.data.labelTextId,
   );
+
   const newIndex = parentFieldSet.fields.findIndex(
     (field) => field.labelTextId === overElement.data.labelTextId,
   );
 
-  if (oldIndex === -1 || newIndex === -1) return;
+  if (oldIndex === -1 || newIndex === -1)
+    return [elements, { ...dragElement, type: "field" }];
 
   const sortedFields = arrayMove(parentFieldSet.fields, oldIndex, newIndex);
   const updatedFieldSet = { ...parentFieldSet, fields: sortedFields };
@@ -186,7 +192,40 @@ export function handleSameFieldsetMove(
     el.fieldsetTextId === updatedFieldSet.fieldsetTextId ? updatedFieldSet : el,
   );
 
-  return [newElements, dragElement];
+  return [newElements, { ...dragElement, type: "field" }];
+}
+
+/**
+ * Handles moving a field between a fieldset to root
+ */
+
+export function handleFieldsetToRootMove(
+  dragElement: any,
+  overElement: any,
+  position: string,
+  elements: BuilderElement[],
+): ReturnType {
+  const newFieldset: BuilderElement = {
+    fieldsetName: `Fieldset ${elements.length + 1}`,
+    fieldsetTextId: uuidv4(),
+    fields: [dragElement.data as BuilderElementField],
+  };
+
+  // If dropping on an existing fieldset
+  const targetIndex = elements.findIndex(
+    (el) => el.fieldsetTextId === overElement.data.fieldsetTextId,
+  );
+
+  if (targetIndex !== -1) {
+    const insertIndex = position === "top" ? targetIndex : targetIndex + 1;
+    const updatedElements = [
+      ...elements.slice(0, insertIndex),
+      newFieldset,
+      ...elements.slice(insertIndex),
+    ];
+    return [updatedElements, { ...newFieldset, type: "fieldSet" }];
+  }
+  return [[...elements, newFieldset], { ...newFieldset, type: "fieldSet" }];
 }
 
 /**
@@ -197,35 +236,59 @@ export function handleCrossFieldsetMove(
   overElement: any,
   position: string,
   elements: BuilderElement[],
-) {
+): ReturnType {
   const fromFieldset = elements.find(
     (el) => el.fieldsetTextId === dragElement.parent,
   );
-  const toFieldset = elements.find(
+
+  // Find or create target fieldset
+  let toFieldset = elements.find(
     (el) => el.fieldsetTextId === overElement.parent,
   );
 
-  if (!fromFieldset || !toFieldset) return;
+  // If dropping on empty space (no target fieldset found)
+  if (!toFieldset) {
+    const newFieldset: BuilderElement = {
+      fieldsetName: `Fieldset ${elements.length + 1}`,
+      fieldsetTextId: uuidv4(), // Make sure to import/define uuidv4
+      fields: [],
+    };
+    toFieldset = newFieldset;
+    elements = [...elements, newFieldset];
+  }
+
+  if (!fromFieldset) return [elements, { ...dragElement, type: "field" }];
 
   const movingField = dragElement.data as BuilderElementField;
+
+  // Remove from old fieldset
   const oldIndex = fromFieldset.fields.findIndex(
     (field) => field.labelTextId === movingField.labelTextId,
   );
-  let newIndex = toFieldset.fields.findIndex(
-    (field) => field.labelTextId === overElement.data.labelTextId,
-  );
 
-  newIndex = position === "top" ? newIndex : newIndex + 1;
-  if (oldIndex === -1 || newIndex === -1) return;
+  if (oldIndex === -1) return [elements, { ...dragElement, type: "field" }];
 
-  // Remove from old fieldset
   const newFromFields = [...fromFieldset.fields];
   newFromFields.splice(oldIndex, 1);
+
+  // Determine position in new fieldset
+  let newIndex = toFieldset.fields.findIndex(
+    (field) => field.labelTextId === overElement.data?.labelTextId,
+  );
+
+  // If dropping on empty fieldset or no specific target field
+  if (newIndex === -1) {
+    newIndex = toFieldset.fields.length; // Add to end
+  } else {
+    // Adjust based on drop position (top/bottom)
+    newIndex = position === "top" ? newIndex : newIndex + 1;
+  }
 
   // Insert into new fieldset
   const newToFields = [...toFieldset.fields];
   newToFields.splice(newIndex, 0, movingField);
 
+  // Update elements array
   const updatedElements = elements.map((el) => {
     if (el.fieldsetTextId === fromFieldset.fieldsetTextId) {
       return { ...el, fields: newFromFields };
@@ -236,7 +299,7 @@ export function handleCrossFieldsetMove(
     return el;
   });
 
-  return [updatedElements, dragElement];
+  return [updatedElements, { ...movingField, type: "field" }];
 }
 
 // Type guards and utility functions

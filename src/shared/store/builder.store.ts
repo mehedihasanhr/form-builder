@@ -13,7 +13,6 @@ export const useBuilderStore = create<BuilderStore>()(
     // init elements
     setElements: (elements) =>
       set((state) => {
-        console.log("ELMENETS: ", elements);
         state.elements = elements;
       }),
 
@@ -49,8 +48,6 @@ export const useBuilderStore = create<BuilderStore>()(
           return { ...el, fields };
         });
 
-        console.log({ newElements });
-
         state.elements = newElements;
       }),
 
@@ -61,8 +58,6 @@ export const useBuilderStore = create<BuilderStore>()(
           const fields = el.fields.filter((f) => f.labelTextId !== fieldId);
           return { ...el, fields };
         });
-
-        console.log({ newElements });
 
         state.elements = newElements;
       }),

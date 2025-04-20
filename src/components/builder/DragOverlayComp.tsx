@@ -7,11 +7,26 @@ export default function DragOverlayComp() {
 
   const renderOverlayContent = () => {
     if (dndCtx?.active?.data?.current?.type === "tool") {
-      return <FormElement isOverlay el={dndCtx?.active?.data?.current?.data} />;
+      return (
+        <FormElement
+          className="pointer-events-none"
+          isOverlay
+          el={dndCtx?.active?.data?.current?.data}
+        />
+      );
     }
 
     if (dndCtx?.active?.data?.current?.type === "fieldSet") {
-      return <div className="bg-white shadow-lg h-34"> Field set </div>;
+      return (
+        <div
+          className="bg-white shadow-lg"
+          style={{
+            height: dndCtx?.active?.rect?.current?.translated?.height,
+          }}
+        >
+          Field set
+        </div>
+      );
     }
 
     if (dndCtx?.active?.data?.current?.type === "field") {

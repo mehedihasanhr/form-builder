@@ -1,8 +1,9 @@
 import { cn } from "@/shared/lib/utils";
-import { useDroppable } from "@dnd-kit/core";
+import { useDndContext, useDroppable } from "@dnd-kit/core";
 import { IconPlus } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
+import DropAreaPlaceholder from "./DropAreaPlaceHolder";
 
 export default function DroppableArea({
   children,
@@ -11,12 +12,14 @@ export default function DroppableArea({
   className,
   isLast,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   id: string;
   data?: any;
   isLast?: boolean;
   className?: string;
 }) {
+  const { over } = useDndContext();
+
   const topSide = useDroppable({
     id: `${id}--top`,
     data: {
@@ -33,6 +36,8 @@ export default function DroppableArea({
     },
   });
 
+  console.log(over);
+
   return (
     <div className={cn("relative group", className)}>
       {/* top drop placeholder */}
@@ -40,57 +45,37 @@ export default function DroppableArea({
         ref={topSide.setNodeRef}
         {...(topSide.isOver ? { "data-over": true } : {})}
         className={cn(
-          "transition-[height] group duration-300  z-10 inset-x-0  min-h-4 ease-in-out border-dashed rounded ",
-          "data-[over]:h-full relative data-[over]:py-4 ",
+          "transition-[height] bg-green-50 group duration-300  z-10 inset-x-0  min-h-4 ease-in-out border-dashed rounded ",
+          "data-[over]:py-4  data-[over]:relative",
         )}
       >
-        <AnimatePresence>
-          {topSide.isOver && (
-            <motion.div
-              initial={{ opacity: 0, height: 16 }}
-              animate={{ opacity: 1, height: 56 }}
-              exit={{ opacity: 1, height: 16 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className={cn(
-                "rounded border flex items-center justify-center text-red-300",
-                "group-data-[over]:duration-300 group-data-[over]:border-red-500 group-data-[over]:bg-[rgba(255,241,241,1)]",
-              )}
-            >
-              <IconPlus />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <DropAreaPlaceholder isOver={topSide.isOver} />
       </div>
 
-      <div className="">{children}</div>
+      {children && (
+        <>
+          <div className="">{children}</div>
 
-      {/* bottom drop placeholder */}
-      <div
-        ref={bottomSide.setNodeRef}
-        {...(bottomSide.isOver ? { "data-over": true } : {})}
-        className={cn(
-          "duration-300 z-10 inset-x-0 min-h-4 ease-in-out border-dashed rounded ",
-          "data-[over]:py-4",
-          isLast && "block",
-        )}
-      >
-        <AnimatePresence>
-          {bottomSide.isOver && (
-            <motion.div
-              initial={{ opacity: 0, height: 16 }}
-              animate={{ opacity: 1, height: 56 }}
-              exit={{ opacity: 1, height: 16 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
+          {/* bottom drop placeholder */}
+          {isLast && (
+            <div
+              ref={bottomSide.setNodeRef}
+              {...(bottomSide.isOver
+                ? {
+                    "data-over": true,
+                    "data-acitve": bottomSide.active,
+                  }
+                : {})}
               className={cn(
-                "rounded border flex items-center justify-center text-red-300",
-                "group-data-[over]:duration-300 group-data-[over]:border-red-500 group-data-[over]:bg-[rgba(255,241,241,1)]",
+                "transition-[height] bg-blue-50 group duration-300 z-10 inset-x-0  min-h-4 ease-in-out border-dashed rounded ",
+                "data-[over]:py-4  data-[over]:relative",
               )}
             >
-              <IconPlus />
-            </motion.div>
+              <DropAreaPlaceholder isOver={bottomSide.isOver} />
+            </div>
           )}
-        </AnimatePresence>
-      </div>
+        </>
+      )}
     </div>
   );
 }

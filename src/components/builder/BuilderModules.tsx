@@ -1,7 +1,7 @@
 import { cn } from "@/shared/lib/utils";
 import { useBuilderStore } from "@/shared/store/builder.store";
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import { rectSwappingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import FieldSet from "../ui/FieldSet";
 import DroppableArea from "./DropableArea";
@@ -14,13 +14,15 @@ export default function BuilderModules() {
   const [isLoading, setIsLoading] = useState(false);
   const { elements, setElements, setSelectedElement, selectedElementId } =
     useBuilderStore();
-  const { isOver, setNodeRef } = useDroppable({ id: "canvas" });
+  const { isOver, setNodeRef } = useDroppable({
+    id: "canvas",
+    data: { parent: "root", data: {} },
+  });
 
   const fetchElementData = async () => {
     setIsLoading(true);
     try {
       const res = await fetch(URL);
-      console.log(res);
       if (res.ok) {
         const data = await res.json();
         setElements(data.your_respons);
@@ -65,44 +67,63 @@ export default function BuilderModules() {
             isOver && "border border-green-500 border-dashed",
           )}
         >
-          <div className="flex flex-col items-stretch">
-            {elements.map((element, elIndex) => (
-              <DroppableArea
-                id={element.fieldsetTextId}
-                isLast={elIndex === elements.length - 1}
-                data={{
-                  data: element,
-                  parent: "root",
-                }}
-              >
-                <FieldSet
+          <div className="flex flex-col items-stretch gap-y-4">
+            <SortableContext
+              id="fieldSet"
+              items={elements.map((el) => ({ id: el.fieldsetTextId }))}
+              strategy={rectSwappingStrategy}
+            >
+              {elements.map((element, elIndex) => (
+                <DroppableArea
                   key={element.fieldsetTextId}
-                  label={element.fieldsetName}
                   id={element.fieldsetTextId}
-                  onClick={onFieldSet(element)}
-                  data-selected={selectedElementId === element.fieldsetTextId}
+                  isLast={elIndex === elements.length - 1}
+                  data={{
+                    data: element,
+                    parent: "root",
+                  }}
                 >
-                  {element.fields.map((field, index) => (
-                    <DroppableArea
-                      key={field.labelTextId}
-                      id={field.labelTextId}
-                      isLast={index === element.fields.length - 1}
-                      data={{
-                        data: field,
-                        parent: element.fieldsetTextId,
-                      }}
-                    >
-                      <RenderElement
-                        el={field}
-                        onSelect={onFieldSelect}
-                        isSelected={selectedElementId === field.labelTextId}
-                        fieldSetId={element.fieldsetTextId}
-                      />
-                    </DroppableArea>
-                  ))}
-                </FieldSet>
-              </DroppableArea>
-            ))}
+                  <FieldSet
+                    key={element.fieldsetTextId}
+                    label={element.fieldsetName}
+                    id={element.fieldsetTextId}
+                    onClick={onFieldSet(element)}
+                    data-selected={selectedElementId === element.fieldsetTextId}
+                    data={element}
+                  >
+                    {element.fields.length ? (
+                      <SortableContext
+                        id="field-sorting"
+                        items={element.fields.map((f) => ({
+                          id: f.labelTextId,
+                        }))}
+                      >
+                        {element.fields.map((field, index) => (
+                          <DroppableArea
+                            key={field.labelTextId}
+                            id={field.labelTextId}
+                            isLast={index === element.fields.length - 1}
+                            data={{
+                              data: field,
+                              parent: element.fieldsetTextId,
+                            }}
+                          >
+                            <RenderElement
+                              el={field}
+                              onSelect={onFieldSelect}
+                              isSelected={
+                                selectedElementId === field.labelTextId
+                              }
+                              fieldSetId={element.fieldsetTextId}
+                            />
+                          </DroppableArea>
+                        ))}
+                      </SortableContext>
+                    ) : null}
+                  </FieldSet>
+                </DroppableArea>
+              ))}
+            </SortableContext>
           </div>
         </div>
       )}
