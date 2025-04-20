@@ -1,9 +1,9 @@
-import { cn } from "@/shared/lib/utils";
-import React from "react";
-import { Separator } from "@/components/ui/Separator";
 import { Button } from "@/components/ui/Button";
-import { IconEye } from "@tabler/icons-react";
+import { Separator } from "@/components/ui/Separator";
+import { cn } from "@/shared/lib/utils";
 import { useBuilderStore } from "@/shared/store/builder.store";
+import { IconEye } from "@tabler/icons-react";
+import React from "react";
 
 export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
   const { hasChanged } = useBuilderStore();

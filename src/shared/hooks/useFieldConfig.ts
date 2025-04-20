@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { toast } from "sonner";
 import { applyChange } from "../service/applyChange";
 import { useBuilderStore } from "../store/builder.store";
-import { useState } from "react";
 
 export const useFieldConfig = () => {
   const [isLoading, setIsLoading] = useState(false);

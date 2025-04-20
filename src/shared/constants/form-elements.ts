@@ -1,12 +1,11 @@
+import { ComboBoxIcon } from "@/components/icons/ComboBoxIcon";
 import {
   IconCalendarWeek,
   IconCircle,
-  IconLabel,
   IconRectangle,
   IconSquare,
   IconTypography,
 } from "@tabler/icons-react";
-import { ComboBoxIcon } from "@/components/icons/ComboBoxIcon";
 
 export const FORM_ELEMENTS = [
   {
