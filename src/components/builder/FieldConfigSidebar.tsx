@@ -52,6 +52,16 @@ export default function FieldConfigSidebar() {
             />
           </div>
         ))
+        .with({ key: "placeholder" }, ({ key, value }) => (
+          <div className="flex flex-col gap-2" key={key}>
+            <Label>Placeholder</Label>
+            <Input
+              value={value}
+              placeholder="Field Placeholder"
+              onChange={(e) => handleFieldChange(key, e.target.value)}
+            />
+          </div>
+        ))
         .with({ key: "options" }, ({ key, value }) => (
           <div className="flex flex-col gap-2" key={key}>
             {Array.isArray(value) && (

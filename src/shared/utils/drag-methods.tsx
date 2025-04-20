@@ -1,6 +1,5 @@
 import { Active, Over } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { current } from "immer";
 import { v4 as uuidv4 } from "uuid";
 
 type ReturnType = [BuilderElement[], SelectedElement | null];

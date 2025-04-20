@@ -1,19 +1,21 @@
-import { match } from "ts-pattern";
-import Field from "../ui/Field";
-import Input from "../ui/Input";
-import Label from "../ui/Label";
 import {
-  Select,
+  Checkbox,
   Combobox,
+  ComboboxButton,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
-  ComboboxButton,
-  Checkbox,
-  RadioGroup,
   Radio,
+  RadioGroup,
+  Select,
 } from "@headlessui/react";
 import { IconCheck, IconCircle, IconSelector } from "@tabler/icons-react";
+import { match } from "ts-pattern";
+import { DatePicker } from "../ui/DatePicker";
+import Field from "../ui/Field";
+import Input from "../ui/Input";
+import Label from "../ui/Label";
+import Textarea from "../ui/Textarea";
 
 export default function RenderElement({
   el,
@@ -47,7 +49,11 @@ export default function RenderElement({
           data-selected={isSelected}
         >
           {field.labelName && <Label> {field.labelName} </Label>}
-          <Input type={field.inputType} placeholder="Text Field" readOnly />
+          <Input
+            type={field.inputType}
+            placeholder={field.placeholder || "Number Field"}
+            readOnly
+          />
         </Field>
       ))
 
@@ -63,7 +69,11 @@ export default function RenderElement({
           data-selected={isSelected}
         >
           {field.labelName && <Label> {field.labelName} </Label>}
-          <Input type={field.inputType} placeholder="Number Field" readOnly />
+          <Input
+            type={field.inputType}
+            placeholder={field.placeholder || "Number Field"}
+            readOnly
+          />
         </Field>
       ))
 
@@ -111,7 +121,7 @@ export default function RenderElement({
             <div className="relative">
               <ComboboxInput
                 aria-label="Assignee"
-                placeholder="Combobox"
+                placeholder={field.placeholder || "Combobox"}
                 className="h-9  w-full rounded-[4px] border border-border placeholder:text-sm placeholder:text-[rgba(99,99,102,1)] py-2 px-3"
               />
               <ComboboxButton className="absolute inset-y-0 right-0 px-2.5">
@@ -193,6 +203,41 @@ export default function RenderElement({
                 </Radio>
               ))}
           </RadioGroup>
+        </Field>
+      ))
+
+      .with({ inputType: "textarea" }, (field) => (
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
+          {field.labelName && <Label> {field.labelName} </Label>}
+
+          <Textarea
+            placeholder={field.placeholder || "Textarea Field"}
+            readOnly
+          />
+        </Field>
+      ))
+
+      .with({ inputType: "datepicker" }, (field) => (
+        <Field
+          draggableConfig={{
+            id: el.labelTextId,
+            data: { data: el, type: "field", parent: fieldSetId },
+            disabled: disabledDrag,
+          }}
+          onClick={handleOnSelect(field)}
+          data-selected={isSelected}
+        >
+          {field.labelName && <Label> {field.labelName} </Label>}
+
+          <DatePicker />
         </Field>
       ))
 
