@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
 import { cn } from "@/shared/lib/utils";
-import { useBuilderStore } from "@/shared/store/builder.store";
 import { IconEye } from "@tabler/icons-react";
 import React from "react";
 
 export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
-  const { hasChanged } = useBuilderStore();
   return (
     <header
       className={cn(
@@ -27,9 +25,6 @@ export const AppNavbar = ({ className }: React.ComponentProps<"div">) => {
       </div>
 
       <div className="flex items-center gap-4">
-        {hasChanged && (
-          <Button className="bg-primary/15 text-primary"> Apply Change </Button>
-        )}
         <p className="text-[13px]"> Changes saved 2 mins ago </p>
         <Button aria-label="Preview Button">
           <IconEye />
